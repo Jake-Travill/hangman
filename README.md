@@ -5,5 +5,7 @@ This is an implementation of the Hangman game, where the computer thinks of a wo
 
 
 ### Current Progress
-- Simple code for choosing a random word out of a list has been implemented into a new branch: 'milestone_branch'.
-- In this same branch code for selected a random word out of a list of strings has been implemented.
+- 'milestone_branch' has been deleted. The branch 'development' will now be editing the hangman_Template.py file.
+- The __init__ method for the Hangman class has been written, including it's attributes and opening print statements.
+- The ask_letter method has been completed, including it's validation checks and check_letter call.
+- Testing and potential debugging required, ammendments will be made as necessary.
