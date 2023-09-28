@@ -1,127 +1,437 @@
-'''
-Make sure you complete all the TODOs in this file.
-The prints have to contain the same text as indicated, don't add any more prints,
-or you will get 0 for this assignment.
-'''
-import random
+# Required Modules & aliases
+#import random
 import time
+from game_data import game_technicals as gt
 
-t = time.sleep()
+# Method Aliases
+t = time.sleep
+timer = gt.coundown_timer
+textz = gt.typewriter_effect
+dell = gt.delete_last_lines
+down = gt.lower_cursor
+
+
+## TODO             1) Clean up the code
+
+
+## TODO (AFTERNOON)
+##                  1) Research:
+##                      - Look into a Generator for the Hangman images.
+##                  2) COMPLETE THE RELEVANT DOCSTRINGS AND README.
+##                  3) (COMPLETE A SAFE, SINGLE PLAYER VERSION)
+##                  3) UPLOAD TO GITHUB
+
+
+class Player():
+    def __init__(self, name, points=0, strike=0):
+        self.name = name
+        self.points = points
+        self.strike = strike
+    
+
+
+    def add_points(self):
+        self.points += 1
+        return self.points
+
+    
+    def add_strike(self):
+        self.strike += 1
+        return self.strike
+    
+    def __str__(self):
+        return(self.name)
+
+
+
+
+
+
+
+
+
+
+
 
 class Hangman:
-    '''
-    A Hangman Game that asks the user for a letter and checks if it is in the word.
-    It starts with a default number of lives and a random word from the word_list.
 
-    
-    Parameters:
-    ----------
-    word_list: list
-        List of words to be used in the game
-    num_lives: int
-        Number of lives the player has
-    
-    Attributes:
-    ----------
-    word: str
-        The word to be guessed picked randomly from the word_list
-    word_guessed: list
-        A list of the letters of the word, with '_' for each letter not yet guessed
-        For example, if the word is 'apple', the word_guessed list would be ['_', '_', '_', '_', '_']
-        If the player guesses 'a', the list would be ['a', '_', '_', '_', '_']
-    num_letters: int
-        The number of UNIQUE letters in the word that have not been guessed yet
-    num_lives: int
-        The number of lives the player has
-    list_letters: list
-        A list of the letters that have already been tried
 
-    Methods:
-    -------
-    check_letter(letter)
-        Checks if the letter is in the word.
-    ask_letter()
-        Asks the user for a letter.
-    '''
-    def __init__(self, word_list, num_lives=5):
-        # TODO 2: Initialize the attributes as indicated in the docstring
-        self.word = random.choice(word_list)
-        self.word_guessed = ['_' for i in self.word]
-        self.num_letters = len(set(self.word))
-        self.num_lives = num_lives
-        self.list_letters = []
+    def __init__(self, player_list, difficulty, mode):   
+        self.players_left = player_list  
+        self.difficulty = difficulty
+        self.mode = mode
+        self.word_obtaining = gt.WordSelector(len(self.players_left), self.difficulty)
 
-        # TODO 2: Print two message upon initialization:
-        # 1. "The mistery word has {num_letters} characters"
-        print(f"The mystery word has {self.num_letters} characters")
-        # 2. {word_guessed}
-        print(self.word_guessed)
-        pass
+        
 
-    def check_letter(self, letter) -> None:
-        '''
-        Checks if the letter is in the word.
-        If it is, it replaces the '_' in the word_guessed list with the letter.
-        If it is not, it reduces the number of lives by 1.
+        self.round_start()
 
-        Parameters:
-        ----------
-        letter: str
-            The letter to be checked
 
-        '''
-        # TODO 3: Check if the letter is in the word. TIP: You can use the lower() method to convert the letter to lowercase
-        # TODO 3: If the letter is in the word, replace the '_' in the word_guessed list with the letter
-        # TODO 3: If the letter is in the word, the number of UNIQUE letters in the word that have not been guessed yet has to be reduced by 1
-        # TODO 3: If the letter is not in the word, reduce the number of lives by 1
-        # Be careful! A letter can contain the same letter more than once. TIP: Take a look at the index() method in the string class
-        pass
+    def round_start(self):
+        words_chosen = self.word_obtaining.selecting_words()
 
-    def ask_letter(self):
-        '''
-        Asks the user for a letter and checks two things:
-        1. If the letter has already been tried
-        2. If the character is a single character
-        If it passes both checks, it calls the check_letter method.
-        '''
-        # TODO 1: Ask the user for a letter iteratively until the user enters a valid letter
-        while True:
-            letter = input("Please enter a letter: ").lower()
-            if len(letter) == 1 and letter.isalpha():
-                check = letter in self.list_letters
-                if check == True:
-                    print(f"Letter '{letter}' was already tried")
-                else:
-                    self.list_letters.append(letter)
-                    self.check_letter(letter)
-                break
-            elif len(letter) > 1 and letter.isalpha():
-                print("Please, enter just one character")
+        round_words = list(zip(self.players_left, words_chosen))
+
+        ## TESTING
+        print(round_words)
+        t(3)
+
+
+
+        for player, word in round_words:
+
+
+            if self.difficulty == 1:
+                self.num_lives = 8
+            elif self.difficulty == 2:
+                self.num_lives = 6
             else:
-                print("Please, enter a single alphabetical character")
+                self.num_lives = 5
 
-        # TODO 1: Assign the letter to a variable called `letter`
 
-        # TODO 1: The letter has to comply with the following criteria: It has to be a single character. If it is not, print "Please, enter just one character"
-        # TODO 2. It has to be a letter that has not been tried yet. Use the list_letters attribute to check this. If it has been tried, print "{letter} was already tried".
-        # TODO 3: If the letter is valid, call the check_letter method
-        pass
+            self.list_letters = []
+            player_round_results = self.ask_letter(player, word)
 
-def play_game(word_list):
-    # As an aid, part of the code is already provided:
-    game = Hangman(word_list, num_lives=5)
-    # TODO 1: To test this task, you can call the ask_letter method
+            dell(2)
+            dell(1)
 
-    # TODO 2: To test this task, upon initialization, two messages should be printed 
-    # TODO 3: To test this task, you call the ask_letter method and check if the letter is in the word
-    
-    # TODO 4: Iteratively ask the user for a letter until the user guesses the word or runs out of lives
-    # If the user guesses the word, print "Congratulations! You won!"
-    # If the user runs out of lives, print "You lost! The word was {word}"
 
-    pass
+
+
+                
+        if self.mode == 2:
+            if first_to_15_list:
+                max_points = max(player.points for player in first_to_15_list)
+
+                for player in self.players_left:
+                    if player.points == max_points:
+                        textz(f"{player} has won with {player.points} points. Congratulations!")
+                        t(1)
+                        dell(0)
+                    else:
+                        continue
+            else:
+                self.round_start()
+                
+
+        else:
+            if len(self.players_left) == 1:
+                textz(f"Congratulations {self.players_left[0]}, you've won Hangman!")
+                t(1)
+
+                ## Game Repeat.
+
+
+            elif len(self.players_left) > 1:
+                for player in self.players_left:
+                    textz(f"{player}, you have passed this round.")
+                    t(0.6)
+                    dell(0)
+
+                self.round_start()
+            
+            else:
+                pass
+                ## Game Repeat
+
+
+
+
+    def ask_letter(self, player, word): 
+        self.word_guessed = ['_' for i in word]
+        self.num_letters = len(set(word))
+        textz(f"{player}, your mystery word has {self.num_letters} unique characters:\n")
+        textz(' '.join(self.word_guessed))
+        down()
+
+
+        player_round = True
+        while player_round == True:
+            
+            textz("Please enter a letter: ")
+            letter = input("").lower()
+
+
+
+            if len(letter) == 1 and letter.isalpha():
+
+
+
+                if letter in self.list_letters:
+                    dell(1)
+                    textz(f"Letter '{letter}' was already tried")
+                    t(0.6)
+                    dell(0)
+                
+
+                
+                
+                else:
+                    dell(1)
+                    self.list_letters.append(letter)
+                    round_results = self.check_letter(player, letter, word)
+
+
+                    if round_results[0] == True:
+                        continue
+                    else:
+                        player_round = False
+                        return round_results
+                        
+            
+
+            else:
+                dell(1)
+                textz("Please, enter just a single alphabetical character")
+                t(1)
+                dell(0)
+
+
+
+
+
+
+
+    def check_letter(self, player, letter, word) -> None:
+
+
+        if letter in word:
+
+            self.word_guessed = [letter if word[index] == letter else current_char for index, current_char in enumerate(self.word_guessed)]
+            self.num_letters -= 1
+
+
+            dell(2)
+            textz(' '.join(self.word_guessed))
+            down()
+
+            if '_' not in self.word_guessed:
+                textz(f"Congratulations! You've correctly guessed \"{word}\" as the word.")
+                player.add_points()
+                t(1)
+                dell(0)
+                if self.mode == 2:
+                    textz(f"{player} has accumulated {player.points} points.")
+                    t(1)
+                    dell(0)
+                    if player.points >= 15:
+                        first_to_15_list.append(player)
+                    else:
+                        pass
+                else:
+                    pass
+                return False, player.points, player.strike
+                
+                
+
+            else:
+                textz(f"Good guess! \"{letter}\" is in the word.")
+                player.add_points()
+                t(0.7)
+                dell()
+                return True, None, None
+                
+
+
+        else:
+            self.num_lives -= 1
+            
+            
+            if self.num_lives == 0:
+                dell(0)
+                textz("Unlucky! You've ran out of lives.")
+                t(1)
+                dell(0)
+
+                if self.mode == 1:
+                    player.add_strike()
+                    textz(f"{player} has been eliminated!")
+                    t(1)
+                    dell(0)
+                    self.players_left.remove(player)
+                    #return False, None, player.strike
+
+                elif self.mode == 2:
+                    textz(f"{player} has accumulated {player.points} points.")
+                    #return False, player.points, None
+                    t(1)
+
+                else:
+                    player.add_strike()
+                return False, player.points, player.strike
+            
+
+            else:
+                dell(0)
+                textz(f"Sorry, \"{letter}\" is not in the word. Try again.")
+                t(0.8)
+                dell()
+                return True, None, None
+                
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#               ## PLAYER EXPERIENCE
+
 
 if __name__ == '__main__':
-    word_list = ['apple', 'banana', 'orange', 'pear', 'strawberry', 'watermelon']
-    play_game(word_list)
-# %%
+    textz("Welcome to Hangman!")
+    t(1)
+
+    game_running = True
+    while game_running == True:
+
+
+
+
+        player_list = []
+
+        first_to_15_list = []
+
+
+
+
+
+
+
+        players_setting = True
+        while players_setting == True:
+            
+            dell(0)
+            textz("Enter your player count (max: 4): ")
+            player_input = input()
+            
+
+
+
+            try:
+                player_count = int(player_input)
+                if not 1 <= player_count <= 4:
+                    raise ValueError
+                
+                else:
+                    dell(1)
+                    break
+
+        
+
+
+            except ValueError:
+                dell(1)
+                textz("Please enter a singe number between 1 and 4...")
+                t(1)
+                continue
+
+
+
+
+
+
+
+
+
+
+        difficulty_settings = True
+        while difficulty_settings == True:
+            
+            dell(0)
+            textz("Select the difficulty (Easy -> 1, Medium -> 2, Hard -> 3): ")
+            player_input = input()
+            
+
+
+
+            try:
+                difficulty = int(player_input)
+                if not 1 <= difficulty <= 3:
+                    raise ValueError
+                
+                else:
+                    dell(1)
+                    break
+
+        
+
+
+            except ValueError:
+                dell(1)
+                textz("\rPlease enter a singe number between 1 and 3...")
+                t(1)
+                continue
+
+
+
+
+
+
+        if player_count > 1:
+            game_mode = True
+            while game_mode == True:
+
+                dell(0)
+                textz("Choose the gamemode (Last Man Standing -> 1, First To 15 points -> 2): ")
+                player_input = input()
+                dell(1)
+                
+
+
+
+                try:
+                    mode = int(player_input)
+                    if not 1 <= mode <= 2:
+                        raise ValueError
+                    
+                    else:
+                        break
+
+            
+
+
+                except ValueError:
+                    dell(1)
+                    textz("\rPlease enter a singe number between 1 and 3...")
+                    t(1)
+                    continue
+        else:
+            dell(0)
+            mode = 3
+            
+    
+
+
+
+
+        for player in range(player_count):
+            dell(0)
+            textz(f"Player {player + 1} Name: ")
+            player_name = input().strip()
+            player_list.append(Player(player_name))
+            dell(1)
+        
+        
+    
+
+        game = Hangman(player_list, difficulty, mode)
+
+'''
+        repeat = game.game_repeat()
+        if repeat == True:
+            continue
+        else:
+            textz("Thank you for playing!")
+            t(1)
+            break
+'''
