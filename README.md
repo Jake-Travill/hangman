@@ -6,38 +6,48 @@ This is an implementation of the Hangman game, where the computer thinks of a wo
 ## Table Of Contents
 1. [Overview](#overview)
 2. [User Experience](#user-experience)
-- [Difficulty](#difficulty)
-- [Modes](#modes)
+    - [Difficulty](#difficulty)
+    - [Modes](#modes)
 3. [Player Class](#player-class)
 4. [Hangman Class](#hangman-class)
-- [round-start()](#round-start)
-- [ask-letter()](#ask-letter)
-- [check-letter()](#check-letter)
+    - [set-player-lives()](#set-player-lives)
+    - [round-start()](#round-start)
+    - [round-end()](#round-end)
+    - [handle-first-to-15()](#handle-first-to-15)
+    - [handle-other-modes()](#handle-other-modes)
+    - [player-turn()](#player-turn)
+    - [ask-letter()](#ask-letter)
+    - [check-letter()](#check-letter)
+    - [handle-correct-guess()](#handle-correct-guess)
+    - [handle-incorrect-guess()](#handle-incorrect-guess)
+    - [game-repeat()](#game-repeat)
 5. [Game Technicals](#game-technicals)
-- [WordSelector](#wordselector)
-- [Miscellaneous](#miscellaneous)
-6. [Critiques](#critiques)
+    - [selecting-words()](#selecting-words)
+    - [delete-last-lines()](#delete-last-lines)
+    - [typewriter-effect()](#typewriter-effect)
+    - [lower-cursor()](#lower-cursor)
+    - [raise-cursor()](#raise-cursor)
+    - [hangman-ascii()](#hangman-ascii)
 
 
 ## Overview
-This hangman game is designed to be a customisable multiplayer experience where not only the player count can be selected, but the game mode and difficulty. The number of lives is dependant on the difficulty, as well as the word length and (if included) the timer for each player round. The game will be replayable from within the program, though this aspect of the code is unfinished. The modes will specify the win conditions and rules for the game. The code utilises technical functions that keep the output clean and concise, ensuring only the relevant information is outputted to the terminal when needed.
-
-Note that the code is written as a prototype, and was written hastily and as a proof of concept. The specificities of this will be discussed in the critiques section.
+This hangman game is designed to be a customisable multiplayer experience where not only the player count can be selected, but the game mode and difficulty. The number of lives is dependant on the difficulty, as well as the word length for each player round. The rules for each game mode are specified before each game, and the program utilises a custom module to keep technical functions seperate. The game is replayable from within the program.
 
 
 ## User Experience
-Before the game is initialised the program asks the user for several arguments. In order, these are the player count, difficulty and (if applicable) the multiplayer gamemode. It will ask for an input for each player's name. 
-(Though the input is stripped, I have noticed a bug where if too much whitespace is entered before entering and inputing the name, the name will stay printed in the terminal when the proceeding code runs.) 
+Before the game is initialised the program asks the user for several arguments. In order, these are the player count, difficulty and (if applicable) the multiplayer gamemode. It will ask for an input for each player's name.
+
+This is managed by the **initiate_game()** function, and the **get_game_settings** function, of which the former iteratively calls the latter with the relevant prompt arguments.
 
 The program collects a word for each player, who are given a set amount of lives to correctly enter all the letters in their respective words. Details are found in the subsections of the User Experience.
 
-Only relevant statements are printed to the terminal when necessary, keeping the user experience concise and manageable for practicality purposes. That said, there is a custom print function found in the 'game_technicals.py' file that writes each statement one character at a time, creating a typewriter effect. This was unnecessary, but a thought that passed my mind and that I thought would be cool to implement.
+Only relevant statements are printed to the terminal when necessary, and deleted afterwards. This keeps the user experience concise and manageable for practicality purposes. That said, there is a custom print function found in the **'game_technicals.py'** file that writes each statement one character at a time, creating a typewriter effect. This was unnecessary, but something that I thought would be cool to implement. It might bring more attention to what's being printed however, so could benefit the user experience for some.
 
 
 ### Difficulty
-The difficulty determines the length of the words given, as well as the lives the player has. I had noticed that 5 lives was sometimes quite difficult depending on the word selected from the lists, so the number of lives are as follow:
+The difficulty determines the length of the words given, as well as the lives the player has. The number of lives are as follows:
 
-- Easy: 8 lives
+- Easy: 7 lives
 - Medium: 6 lives
 - Hard: 5 lives
 
@@ -47,70 +57,76 @@ The length of the words given are also affected. Though players will each get wo
 - Medium: 5 to 7 letters long
 - Hard: 7 to 10 letters long
 
-The probabilities of getting words of a certain length are not equal and dependant on the quantity of each found in the word lists for each difficulty.
+Each difficulty is split into 3 dictionaries, with the character lengths of the words being the keys and the respective lists of words that length as the values. The probabilities for each length evenly split within each difficulty dictionary, though there are more words of certain lengths than others.
 
 ### Modes
-The rules of the game including the win conditions are dependant on the game mode.
+The rules of the game, including the win conditions are dependant on the game mode.
 
 If the mode is Last Man Standing, then any players who fail a round are eliminated and removed from subsequent rounds. If it is First To 15 (15 letters) then the player who is first to gain 15 letters wins. If multiple players accumulate over 15 letters in the same round, then the player with the highest score wins. If they have the same score, they both win. 
 
-If it is single player, then the game will be one round and (though not implemented) the user will have the option to replay the game.
+If it is single player, then the game will be one round and the user will have the option to play another game.
 
 
 ## Player Class
-The Player class is the template for the Player objects created at the beginning of the experience. It includes the name, the points and the strike (whether the player has failed a round in Last Man Standing) for each player. It is a simple class and the interaction between it and the Hangman class, or whether it's even necessary to be seperate, is something I'm unsure of.
+The Player class is the template for the Player objects created at the beginning of the experience. It includes the name and the points for each player. It has a limited use though its points attribute makes it easy to keep track of player scores in First To 15.
 
 
 ## Hangman Class
-This class deals with the bulk of the programmatic content. It handles the game flow, the letter verification, the conditions for the game based on difficulty and mode, as well as calling the WordSelector class in the game_technicals.py file to obtain the round's words. The following methods are explained in more detail.
+This class deals with the bulk of the programmatic content. It handles the game flow, the letter verification, the conditions for the game based on difficulty and mode, as well as calling the **selecting_words()** and **hangman_ascii()** functions from the **game_technicals.py** file. The following methods are explained in more detail:
+
+### set-player-lives()
+This sets the number of lives for each player based on the difficulty, and is called in the **round_start()** method to be reset for each player.
 
 ### round-start()
-This method sets the number of lives each player has for each round, then for each player calls the ask_letter() method to iteratively ask the current player to guess their word's letters. After the round is over, the method then handles the outcome of the round depending on the mode. Whether this be that a further round is required or the win/lose conditions have been met and the game finishes.
+Begins a new round and initiates the turn for each player.
+
+### round-end()
+Handles the end-of-round procedures and calls the relevant method based on the gamemode.
+
+### handle-first-to-15()
+Handles the round's outcome for the First To 15 gamemode.
+
+### handle-other-modes()
+Handles the round's outcome for the Last Man Standing and singleplayer gamemodes.
+
+### player-turn()
+Initiates of manages the turn for the current player, printing the empty word to be guessed, as well as stating the number of unique characters in the word. It also calls the **ask_letter()** and **check_letter()** methods.
 
 ### ask-letter()
-This method is called for each player in one round of the game. It starts by printing the number of unique characters and the empty self.word_guessed list of characters. It then asks for an input from the player, and checks if the letter is valid i.e is a single letter and is alphabetical. It then checks if the letter has already been guessed, and if so prompts the user to enter a new character. If valid, the user's input is sent to the check_letter() method.
+Prompts the player to enter a letter and checks if the input is valid. I.e if it is a single, alphabetical letter.
 
 ### check-letter()
-This method checks to see if the user input is found within the word. It updates the self.word_guessed attribute if so, and handles the points gained or lives lost as a result of the input. If the gamemode is First To 15, then it prints the accumulated points a player has after the round ends. It then returns the outcome of the round's last input (and thus the outcome of the round) to the ask_letter() method which then returns it to the round_start() method.
+Checks the guessed letter against the player's word and directs to the appropriate handling depending on the guess' success.
+
+### handle-correct-guess()
+Handles the procedure when the player has guessed correctly, and manages the outcome when a player has guessed all the letters correctly.
+
+### handle-incorrect-guess()
+Handles the procedures when the player has guessed incorrectly, and manages the outcome (depending on the gamemode) when a player has run out of lives.
+
+### game-repeat()
+Prompts the player to state whether they wish to play another game. If the player says yes ('y') then the **initiate_game()** function will be called and a new game's setting's will be obtained.
 
 
 ## Game Technicals
-The game_technicals.py file includes the lists for all the words that can be issued in the game, as well as the WordSelector class and several miscellaneous functions that help with the presentation of the game from the fron end. The details are as follows:
+The **game_technicals.py** file includes the dictionaries containing all the words that can be issued in the game, as well as several functions that help with both game mechanics and the presentation of the game from the fron end. These functions are as follows:
 
-### WordSelector
-This class contains one method, the selecting_words() method, though may incorporate the countdown_timer() method (if implemented). This method takes the attributes found withing the WordSelector class, notably the player count and difficulty, and retrieves the relevant amount of words from the relevant word list. 
+### selecting-words()
+This method takes the length of the players_left attribute in Hangman and the difficulty, and retrieves the relevant amount of words from the appropriate word dictionary. 
 
-It ensures the words are all of the same length, doing so by randomly selecting the first word, and selecting the remaining words based on the first word's length. It then returns the words to the round_start() method that zips the words with the list of players.
+It ensures the words are all of the same length. It does this by randomely selecting a key (word length) in one of the word dictionaries, and then randomely selecting the necessary amount of words from the value of said key.
 
-### Miscellaneous
-The game_technicals.py file also includes several other functions aimed at keeping repeated code concise or adding a bit of flare. In brief, these functions consist of:
+### delete-last-lines()
+This function uses escape codes to delete the last lines, of a user-defined quantity.
 
-#### typewriter_effect()
-This function is an altered print function that creates a typewriter effect for every output, giving a bit of uniqueness to the game.
+### typewriter-effect()
+This function is an altered print function that creates a typewriter effect for every output, as well as having built-in delay and auto-delete parameters.
 
-#### delete_last_lines()
-This function takes the length of the last typewriter_effect() print statement and prints whitespace over it, with an argument for how many lines the cursor moves up to do so.
+### lower-cursor()
+A function that moves the cursor down by an integer argument (default: 1).
 
-#### lower_cursor()
-A simple function that moves the cursor down by an integer argument (default: 1). I believe it's only been used once so far in the code but I figured it could come in handy.
+### raise-cursor()
+A function that uses an escape code to raise the cursor by an integer argument (default=1).
 
-
-## Critiques
-Because this code was written in one stretch, and with the attitude of "get it all working first", the conciseness and simplicity of it leaves much to be desired. Throughout development I intended to take on a specific approach to annotation but couldn't decide on how I wanted the code structured or annotated so I left it for after the final touches have been finished.
-
-Overall the code is a bit of a mess and needs cleaning but most of the logic is done for the modes and difficulties. It just needs restructuring to adhere better to good coding practices.
-
-### DRY Coding Practices
-Despite making use of functions, DRY coding practices are not adhered to as well as they could be. An example of this is at the bottom of the script, which deals with the player input for the game settings. It was written to separate each setting for conceptual simplicity but has not been edited since it was first written. Because of the repetitive nature of the section, it could easily fit into a single function with parameters for the min/max values, the input and the error message.
-
-### Abstraction
-The methods found in the Hangman class are long and would be better split into separate methods. They were based off of the default template methods given for the project, which I adhered to for simplicity however after fleshing them out they've become long and complicated and the Hangman class could be much simpler with less nested if/else statements and while loops. The game settings loop at the bottom of the script also fits into needed abstraction.
-
-### General Cleaning
-General cleaning is needed on the code This includes: 
-- Setting while loops to 'while == True' as opposed to 'while bool_value == True', as they're unneeded. 
-- The return variables in the check_letter() method could also likely be fitted/grouped into a single tuple variable for each condition. 
-- Global variables such as the first_to_15_list could be encapsulated into the Hangman class. If/else statements could be more procise. 
-- The Player class itself might be unnecessary and player properties could be handled within the Hangman Class.
-- Redundant else: continue/else: pass statements that were placeholders but no longer needed.
-- Restructuring of the dell() (delete_last_lines) function calls so they're more intuitive and easier to track in the program runtime.
+### hangman-ascii()
+A function that stores a list containing the hangman ascii art in order. When called it will reverse index this list using the number of lives the player has remaining, making it compatible with all difficulties.
