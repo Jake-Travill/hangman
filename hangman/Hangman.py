@@ -365,8 +365,9 @@ def get_game_settings(prompt, min_val, max_val, error_message):
     # Checks for a valid input to return
         try:
             user_input = int(input().strip())
-            dell_line(1)
+            #dell_line(1)
             if min_val <= user_input <= max_val:
+                dell_line(1)
                 return user_input
             else:
                 raise ValueError
