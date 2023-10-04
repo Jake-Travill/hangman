@@ -256,10 +256,12 @@ class Hangman:
         self.word_guessed = [letter if word[index] == letter else current_char for index, current_char in enumerate(self.word_guessed)]
         self.num_letters -= 1
 
+        # Reprints the updated word_guessed.
         dell_line(2)
         text(' '.join(self.word_guessed))
         down()
 
+        # Checks if there are no letters left to guess.
         if '_' not in self.word_guessed:
             text(f"Congratulations! You've correctly guessed \"{word}\" as the word.", 1, True)
             player.add_points()
@@ -268,6 +270,7 @@ class Hangman:
                 text(f"{player} has accumulated {player.points} points.", 1, True)
             return False
         
+        # Informs the player that they guessed correctly.
         else:
             text(f"Good guess! \"{letter}\" is in the word.", 0.7, True)
             player.add_points()
@@ -324,6 +327,7 @@ class Hangman:
             repeat_input = input().lower().strip()
             dell_line(1)
 
+            # Handles input.
             if repeat_input == 'y':
                 initiate_game()
                 break
@@ -365,7 +369,6 @@ def get_game_settings(prompt, min_val, max_val, error_message):
     # Checks for a valid input to return
         try:
             user_input = int(input().strip())
-            #dell_line(1)
             if min_val <= user_input <= max_val:
                 dell_line(1)
                 return user_input
@@ -387,7 +390,7 @@ if __name__ == '__main__':
 
     # Initiates selection of game settings and game.
     def initiate_game():
-        # Calling the get_user_input function with specified arguments
+        # Calling the get_user_input function with specified arguments.
         player_count = get_game_settings(
             "Enter your player count (max: 4): ", 1, 4, 
             "Please enter a number between 1 and 4..."
